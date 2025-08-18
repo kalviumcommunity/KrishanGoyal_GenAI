@@ -32,16 +32,20 @@ with st.sidebar:
     # Create a radio button for prompt type
     prompt_type = st.radio(
         "Prompting Technique",
-        ["None", "One-Shot", "Multi-Shot", "Dynamic"],
+        ["Zero-Shot", "One-Shot", "Multi-Shot", "Dynamic"],
         index=0,
         help="Select the prompt engineering technique to use"
     )
     
+    use_zero_shot = False
     use_one_shot = False
     use_multi_shot = False
     use_dynamic = False
     
-    if prompt_type == "One-Shot":
+    if prompt_type == "Zero-Shot":
+        use_zero_shot = True
+        st.info("Zero-shot prompting relies solely on the model's knowledge without example Q&A pairs, using only clear instructions.")
+    elif prompt_type == "One-Shot":
         use_one_shot = True
         st.info("One-shot prompting includes a single example Q&A pair to guide the model's response format and style.")
     elif prompt_type == "Multi-Shot":
@@ -122,6 +126,7 @@ if ask:
             payload = {
                 "question": cleaned_question, 
                 "temperature": temperature,
+                "use_zero_shot": use_zero_shot,
                 "use_one_shot": use_one_shot,
                 "use_multi_shot": use_multi_shot,
                 "use_dynamic": use_dynamic
@@ -145,6 +150,8 @@ if ask:
                 
                 # Display metadata about the response
                 meta_info = f"k={data.get('used_k')} | temp={data.get('temperature')}"
+                if data.get("used_zero_shot"):
+                    meta_info += " | zero-shot=True"
                 if data.get("used_one_shot"):
                     meta_info += " | one-shot=True"
                 if data.get("used_multi_shot"):
