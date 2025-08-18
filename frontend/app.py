@@ -28,17 +28,36 @@ with st.sidebar:
     )
     
     st.header("Prompt Engineering")
-    use_one_shot = st.toggle(
-        "Use One-Shot Prompting", 
-        value=False,
-        help="Enable to use subject-specific example Q&A pairs to guide the model's responses."
+    
+    # Create a radio button for prompt type
+    prompt_type = st.radio(
+        "Prompting Technique",
+        ["None", "One-Shot", "Multi-Shot"],
+        index=0,
+        help="Select the prompt engineering technique to use"
     )
-    if use_one_shot:
-        st.info("One-shot prompting includes an example Q&A pair to guide the model's response format and style.")
+    
+    use_one_shot = False
+    use_multi_shot = False
+    
+    if prompt_type == "One-Shot":
+        use_one_shot = True
+        st.info("One-shot prompting includes a single example Q&A pair to guide the model's response format and style.")
+    elif prompt_type == "Multi-Shot":
+        use_multi_shot = True
+        st.info("Multi-shot prompting includes multiple example Q&A pairs to guide the model's response format and style.")
+    
+    if use_one_shot or use_multi_shot:
         example_subject = "Math"
         if query_subject != "Any":
             example_subject = query_subject
-        st.caption(f"Using {example_subject} example")
+        st.caption(f"Using {example_subject} examples")
+        
+        # Show more details about number of examples for multi-shot
+        if use_multi_shot:
+            examples_count = {"Physics": 3, "Biology": 3, "Math": 3}
+            count = examples_count.get(example_subject, 3)
+            st.caption(f"Using {count} example Q&A pairs")
 
 st.header("Ask a Question")
 question = st.text_input("Enter your question", placeholder="Explain the principle of superposition of waves.")
@@ -89,7 +108,8 @@ if ask:
             payload = {
                 "question": cleaned_question, 
                 "temperature": temperature,
-                "use_one_shot": use_one_shot
+                "use_one_shot": use_one_shot,
+                "use_multi_shot": use_multi_shot
             }
             if query_subject != "Any":
                 payload["subject"] = query_subject
@@ -112,6 +132,8 @@ if ask:
                 meta_info = f"k={data.get('used_k')} | temp={data.get('temperature')}"
                 if data.get("used_one_shot"):
                     meta_info += " | one-shot=True"
+                if data.get("used_multi_shot"):
+                    meta_info += " | multi-shot=True"
                 st.caption(meta_info)
                 sources = data.get("sources", [])
                 if sources:

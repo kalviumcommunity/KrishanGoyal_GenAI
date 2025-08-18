@@ -1,12 +1,12 @@
 @echo off
-REM Demo script for starting the application with one-shot prompting
+REM Demo script for starting the application with multi-shot prompting
 
-echo ==========================
-echo StudyMate One-Shot Prompting Demo
-echo ==========================
+echo ============================
+echo StudyMate Multi-Shot Prompting Demo
+echo ============================
 
 echo.
-echo This script will start the backend and frontend for demonstrating one-shot prompting.
+echo This script will start the backend and frontend for demonstrating multi-shot prompting.
 echo.
 
 REM Check if Python is installed
@@ -39,17 +39,17 @@ echo Starting frontend...
 start powershell -NoExit -Command "cd frontend && ./run_ui.ps1"
 
 echo.
-echo Starting one-shot prompting demo...
+echo Starting multi-shot prompting demo...
 echo (This will wait for both services to be running)
 timeout /t 10 /nobreak > nul
 
 echo.
 echo Running demo comparison script...
-start powershell -NoExit -Command "python demo_one_shot.py"
+start powershell -NoExit -Command "python demo_multi_shot.py"
 
 echo.
-echo ==========================
+echo ============================
 echo All services started! You can now:
-echo 1. Use the demo script to see one-shot prompting comparisons
+echo 1. Use the demo script to see multi-shot prompting comparisons
 echo 2. Visit http://localhost:8502 to use the web UI
-echo ==========================
+echo ============================
