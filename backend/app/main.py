@@ -37,6 +37,7 @@ async def ask(
     temperature: Optional[float] = Form(None),
     subject: Optional[str] = Form(None),
     use_one_shot: Optional[bool] = Form(False),
+    use_multi_shot: Optional[bool] = Form(False),
     json_body: Optional[dict] = Body(None)
 ):
     # Support both form-data (Streamlit current) and JSON clients
@@ -55,6 +56,8 @@ async def ask(
                     subject = body_data.get("subject")
                 if use_one_shot is False:  # Only override if not provided via Form
                     use_one_shot = body_data.get("use_one_shot", False)
+                if use_multi_shot is False:  # Only override if not provided via Form
+                    use_multi_shot = body_data.get("use_multi_shot", False)
                 k = body_data.get("k")
         except Exception:
             pass  # Silently continue if JSON parsing fails
@@ -70,6 +73,8 @@ async def ask(
             subject = json_body.get("subject")
         if use_one_shot is False:  # Only override if not provided via Form
             use_one_shot = json_body.get("use_one_shot", False)
+        if use_multi_shot is False:  # Only override if not provided via Form
+            use_multi_shot = json_body.get("use_multi_shot", False)
         k = json_body.get("k")
     else:
         k = None
@@ -84,7 +89,8 @@ async def ask(
             temperature=temperature, 
             subject=subject, 
             k=k,
-            use_one_shot=use_one_shot
+            use_one_shot=use_one_shot,
+            use_multi_shot=use_multi_shot
         )
         return result
     except Exception as e:
