@@ -464,6 +464,7 @@ Integration is the reverse process of differentiation, allowing us to find antid
     }
 }
 
+# Default system instructions (used for standard prompting)
 SYSTEM_INSTRUCTIONS = """You are an educational assistant for Indian Class 12 NCERT subjects (Physics, Biology, Mathematics). Always base answers strictly on the provided context. If the answer is not in context, say you don't have enough textbook information.
 
 Please provide detailed, well-structured answers following these guidelines:
@@ -478,6 +479,48 @@ Please provide detailed, well-structured answers following these guidelines:
 
 Make sure to format mathematical equations properly. Your goal is to provide comprehensive, exam-ready answers."""
 
+# Zero-shot specific instructions (more detailed and explicit)
+ZERO_SHOT_INSTRUCTIONS = """You are a specialized educational assistant for Indian Class 12 NCERT subjects (Physics, Biology, and Mathematics). Your purpose is to provide clear, accurate, and well-structured answers based EXCLUSIVELY on the provided context from textbooks.
+
+When answering questions, follow this EXACT structure:
+
+1. TITLE: Begin with a clear, concise title using markdown heading (#)
+
+2. INTRODUCTION (1-2 paragraphs):
+   - Define the key concept/topic
+   - Explain its significance in the subject area
+   - Mention where it fits within the broader curriculum
+
+3. CORE CONTENT (organized by subtopics):
+   - Use markdown subheadings (##) for each major subtopic
+   - For definitions: provide formal definition followed by simplified explanation
+   - For processes: present steps in numerical order with clear transitions
+   - For mathematical concepts: show formulas with proper formatting
+   - For theories: explain core principles and their implications
+
+4. VISUAL ELEMENTS (where applicable):
+   - For mathematical concepts: use properly formatted equations
+   - For physics concepts: include key formulas with variable definitions
+   - For biological processes: describe structural components clearly
+
+5. EXAMPLES (at least one):
+   - For physics/math: include a worked example with step-by-step solution
+   - For biology: provide a concrete example of the concept in action
+
+6. CONCLUSION:
+   - Summarize the key points (1 paragraph)
+   - Highlight the importance for exams or further study
+
+7. FORMAT REQUIREMENTS:
+   - Use **bold** for important terms
+   - Use bullet points for lists of characteristics or properties
+   - Use numbered lists for sequential processes or steps
+   - Use proper scientific notation and mathematical formatting
+
+If the provided context does not contain sufficient information to answer the question, explicitly state: "The provided NCERT textbook content does not contain sufficient information to answer this question comprehensively."
+
+Remember: You are preparing students for their Class 12 examinations. Accuracy, clarity, and adherence to the curriculum are your highest priorities."""
+
 
 def detect_question_type(question: str) -> str:
     """Detect the type of question based on patterns in the question text."""
@@ -487,7 +530,8 @@ def detect_question_type(question: str) -> str:
     return "definition"  # Default to definition if no pattern matches
 
 def build_prompt(question: str, retrieved_docs: List[dict], use_one_shot: bool = False, 
-              use_multi_shot: bool = False, use_dynamic: bool = False, subject: Optional[str] = None) -> str:
+              use_multi_shot: bool = False, use_dynamic: bool = False,
+              use_zero_shot: bool = False, subject: Optional[str] = None) -> str:
     # Build context from retrieved documents
     context_blocks = []
     for i, doc in enumerate(retrieved_docs, 1):
@@ -505,8 +549,15 @@ def build_prompt(question: str, retrieved_docs: List[dict], use_one_shot: bool =
         elif "bio" in subject.lower():
             example_subject = "Biology"
     
-    # Dynamic prompting takes highest precedence if enabled
-    if use_dynamic:
+    # Select the appropriate instructions based on prompt type
+    # Order of precedence: zero-shot > dynamic > multi-shot > one-shot
+    instructions = SYSTEM_INSTRUCTIONS  # Default instructions
+    
+    if use_zero_shot:
+        instructions = ZERO_SHOT_INSTRUCTIONS
+    
+    # Dynamic prompting takes highest precedence if enabled and zero-shot is not used
+    if use_dynamic and not use_zero_shot:
         # Detect question type and get appropriate template
         q_type = detect_question_type(question)
         template = DYNAMIC_PROMPT_TEMPLATES[q_type]["template"]
@@ -516,8 +567,8 @@ def build_prompt(question: str, retrieved_docs: List[dict], use_one_shot: bool =
 
 Now answer the user's question using this structure:"""
     
-    # Add multi-shot examples if requested (takes precedence over one-shot)
-    elif use_multi_shot:
+    # Add multi-shot examples if requested and neither zero-shot nor dynamic are being used
+    elif use_multi_shot and not use_zero_shot:
         examples = MULTI_SHOT_EXAMPLES.get(example_subject, MULTI_SHOT_EXAMPLES["Math"])
         examples_blocks = []
         
@@ -530,8 +581,8 @@ Now answer the user's question using this structure:"""
         
         examples_text = "\n\n".join(examples_blocks) + "\n\nNow answer the user's question in a similar format:"
     
-    # Add one-shot example if requested and neither dynamic nor multi-shot are being used
-    elif use_one_shot:
+    # Add one-shot example if requested and none of the above are being used
+    elif use_one_shot and not use_zero_shot and not use_dynamic and not use_multi_shot:
         # Get example Q&A pair
         example = ONE_SHOT_EXAMPLES.get(example_subject, ONE_SHOT_EXAMPLES["Math"])
         examples_text = f"""### Example Question:
@@ -543,13 +594,14 @@ Now answer the user's question using this structure:"""
 Now answer the user's question in a similar format:"""
     
     # Build the final prompt
-    prompt = f"{SYSTEM_INSTRUCTIONS}\n\nContext:\n{context}\n\n{examples_text}\n\nQuestion: {question}\nAnswer:"
+    prompt = f"{instructions}\n\nContext:\n{context}\n\n{examples_text}\n\nQuestion: {question}\nAnswer:"
     return prompt
 
 
 def answer_question(question: str, temperature: float | None = None, k: int | None = None, 
                  subject: Optional[str] = None, use_one_shot: bool = False, 
-                 use_multi_shot: bool = False, use_dynamic: bool = False):
+                 use_multi_shot: bool = False, use_dynamic: bool = False,
+                 use_zero_shot: bool = False):
     if not question:
         return {"error": "Question cannot be empty"}
     
@@ -558,8 +610,12 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
     if k is None:
         k = settings.max_retrieve
     
-    # Order of precedence: dynamic > multi-shot > one-shot
-    if use_dynamic:
+    # Order of precedence: zero-shot > dynamic > multi-shot > one-shot
+    if use_zero_shot:
+        use_dynamic = False
+        use_multi_shot = False
+        use_one_shot = False
+    elif use_dynamic:
         use_multi_shot = False
         use_one_shot = False
     elif use_multi_shot:
@@ -577,6 +633,7 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
         use_one_shot=use_one_shot, 
         use_multi_shot=use_multi_shot, 
         use_dynamic=use_dynamic,
+        use_zero_shot=use_zero_shot,
         subject=subject
     )
     answer = generate_answer(prompt, temperature=temperature)
@@ -589,5 +646,6 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
         "used_one_shot": use_one_shot,
         "used_multi_shot": use_multi_shot,
         "used_dynamic": use_dynamic,
+        "used_zero_shot": use_zero_shot,
         "question_type": question_type if use_dynamic else None
     }
