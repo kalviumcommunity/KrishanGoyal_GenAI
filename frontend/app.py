@@ -32,13 +32,14 @@ with st.sidebar:
     # Create a radio button for prompt type
     prompt_type = st.radio(
         "Prompting Technique",
-        ["None", "One-Shot", "Multi-Shot"],
+        ["None", "One-Shot", "Multi-Shot", "Dynamic"],
         index=0,
         help="Select the prompt engineering technique to use"
     )
     
     use_one_shot = False
     use_multi_shot = False
+    use_dynamic = False
     
     if prompt_type == "One-Shot":
         use_one_shot = True
@@ -46,6 +47,19 @@ with st.sidebar:
     elif prompt_type == "Multi-Shot":
         use_multi_shot = True
         st.info("Multi-shot prompting includes multiple example Q&A pairs to guide the model's response format and style.")
+    elif prompt_type == "Dynamic":
+        use_dynamic = True
+        st.info("Dynamic prompting automatically adapts the response format based on the type of question asked.")
+        
+        # Show the different question types that can be detected
+        with st.expander("Question Types Detected"):
+            st.markdown("""
+            - **Definition**: What is...?, Define..., Explain the concept of...
+            - **Comparison**: Compare..., Difference between..., Contrast...
+            - **Process**: Process of..., Steps in..., How does...
+            - **Problem-Solving**: Solve..., Calculate..., Find...
+            - **Application**: Application of..., Used for..., Importance of...
+            """)
     
     if use_one_shot or use_multi_shot:
         example_subject = "Math"
@@ -109,7 +123,8 @@ if ask:
                 "question": cleaned_question, 
                 "temperature": temperature,
                 "use_one_shot": use_one_shot,
-                "use_multi_shot": use_multi_shot
+                "use_multi_shot": use_multi_shot,
+                "use_dynamic": use_dynamic
             }
             if query_subject != "Any":
                 payload["subject"] = query_subject
@@ -134,6 +149,9 @@ if ask:
                     meta_info += " | one-shot=True"
                 if data.get("used_multi_shot"):
                     meta_info += " | multi-shot=True"
+                if data.get("used_dynamic"):
+                    question_type = data.get("question_type", "unknown")
+                    meta_info += f" | dynamic=True (type: {question_type})"
                 st.caption(meta_info)
                 sources = data.get("sources", [])
                 if sources:
