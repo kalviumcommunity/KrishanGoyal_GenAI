@@ -89,16 +89,21 @@ if ask:
                 st.error(f"Error: {data['error']}")
             else:
                 st.subheader("Answer")
-                st.write(data.get("answer", ""))
-                meta_info = f"k={data.get('used_k')} | temp={data.get('temperature')}"
-                st.caption(meta_info)
-                sources = data.get("sources", [])
-                if sources:
-                    st.caption("Sources:")
-                    for s in sources:
-                        page = s.get("page")
-                        subj = s.get("subject")
-                        src = s.get("source")
-                        st.markdown(f"- **{subj}** | {src} (page {page})")
+                # Display the answer in a more readable format
+                st.markdown("""
+                <style>
+                .detailed-answer {
+                    background-color: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 10px;
+                    border-left: 5px solid #4CAF50;
+                }
+                </style>
+                """, unsafe_allow_html=True)
+                
+                st.markdown(f'<div class="detailed-answer">{data.get("answer", "")}</div>', unsafe_allow_html=True)
+                
+                # Just show the temperature as a subtle caption
+                st.caption(f"Response generated with temperature: {data.get('temperature')}")
         else:
             st.error("Error from server")
