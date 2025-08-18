@@ -26,6 +26,19 @@ with st.sidebar:
         "Temperature", 0.0, 1.0, 0.2, 0.05,
         help="Lower = more factual, higher = more creative phrasing."
     )
+    
+    st.header("Prompt Engineering")
+    use_one_shot = st.toggle(
+        "Use One-Shot Prompting", 
+        value=False,
+        help="Enable to use subject-specific example Q&A pairs to guide the model's responses."
+    )
+    if use_one_shot:
+        st.info("One-shot prompting includes an example Q&A pair to guide the model's response format and style.")
+        example_subject = "Math"
+        if query_subject != "Any":
+            example_subject = query_subject
+        st.caption(f"Using {example_subject} example")
 
 st.header("Ask a Question")
 question = st.text_input("Enter your question", placeholder="Explain the principle of superposition of waves.")
@@ -73,7 +86,11 @@ if ask:
                 st.warning("Please enter a question.")
                 st.stop()  # Stop execution instead of return
                 
-            payload = {"question": cleaned_question, "temperature": temperature}
+            payload = {
+                "question": cleaned_question, 
+                "temperature": temperature,
+                "use_one_shot": use_one_shot
+            }
             if query_subject != "Any":
                 payload["subject"] = query_subject
             
@@ -89,21 +106,20 @@ if ask:
                 st.error(f"Error: {data['error']}")
             else:
                 st.subheader("Answer")
-                # Display the answer in a more readable format
-                st.markdown("""
-                <style>
-                .detailed-answer {
-                    background-color: #f8f9fa;
-                    padding: 20px;
-                    border-radius: 10px;
-                    border-left: 5px solid #4CAF50;
-                }
-                </style>
-                """, unsafe_allow_html=True)
+                st.write(data.get("answer", ""))
                 
-                st.markdown(f'<div class="detailed-answer">{data.get("answer", "")}</div>', unsafe_allow_html=True)
-                
-                # Just show the temperature as a subtle caption
-                st.caption(f"Response generated with temperature: {data.get('temperature')}")
+                # Display metadata about the response
+                meta_info = f"k={data.get('used_k')} | temp={data.get('temperature')}"
+                if data.get("used_one_shot"):
+                    meta_info += " | one-shot=True"
+                st.caption(meta_info)
+                sources = data.get("sources", [])
+                if sources:
+                    st.caption("Sources:")
+                    for s in sources:
+                        page = s.get("page")
+                        subj = s.get("subject")
+                        src = s.get("source")
+                        st.markdown(f"- **{subj}** | {src} (page {page})")
         else:
             st.error("Error from server")

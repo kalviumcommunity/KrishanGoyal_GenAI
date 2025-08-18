@@ -10,3 +10,4 @@ numpy==1.26.4
 pandas==2.2.2
 streamlit==1.36.0
 orjson==3.10.3
+rich==13.7.0

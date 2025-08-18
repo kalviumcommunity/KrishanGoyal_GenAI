@@ -36,6 +36,7 @@ async def ask(
     question: Optional[str] = Form(None),
     temperature: Optional[float] = Form(None),
     subject: Optional[str] = Form(None),
+    use_one_shot: Optional[bool] = Form(False),
     json_body: Optional[dict] = Body(None)
 ):
     # Support both form-data (Streamlit current) and JSON clients
@@ -52,6 +53,8 @@ async def ask(
                     temperature = body_data.get("temperature")
                 if subject is None:  # Only override if not provided via Form
                     subject = body_data.get("subject")
+                if use_one_shot is False:  # Only override if not provided via Form
+                    use_one_shot = body_data.get("use_one_shot", False)
                 k = body_data.get("k")
         except Exception:
             pass  # Silently continue if JSON parsing fails
@@ -65,6 +68,8 @@ async def ask(
             temperature = json_body.get("temperature")
         if subject is None:  # Only override if not provided via Form
             subject = json_body.get("subject")
+        if use_one_shot is False:  # Only override if not provided via Form
+            use_one_shot = json_body.get("use_one_shot", False)
         k = json_body.get("k")
     else:
         k = None
@@ -74,7 +79,13 @@ async def ask(
         return {"error": "Question cannot be empty"}
         
     try:
-        result = answer_question(question, temperature=temperature, subject=subject, k=k)
+        result = answer_question(
+            question, 
+            temperature=temperature, 
+            subject=subject, 
+            k=k,
+            use_one_shot=use_one_shot
+        )
         return result
     except Exception as e:
         return {
