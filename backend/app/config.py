@@ -1,8 +1,14 @@
 import os
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+# Get the project root directory (2 levels up from this file)
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+
+# Load .env from project root
+dotenv_path = PROJECT_ROOT / '.env'
+load_dotenv(dotenv_path=dotenv_path)
 
 class Settings(BaseModel):
     google_api_key: str | None = os.getenv("GOOGLE_API_KEY")
