@@ -159,6 +159,12 @@ if ask:
                 if data.get("used_dynamic"):
                     question_type = data.get("question_type", "unknown")
                     meta_info += f" | dynamic=True (type: {question_type})"
+                
+                # Add token usage if available
+                token_counts = data.get("token_counts")
+                if token_counts:
+                    meta_info += f" | tokens: {token_counts.get('total'):,} total ({token_counts.get('input'):,} in / {token_counts.get('output'):,} out)"
+                
                 st.caption(meta_info)
                 sources = data.get("sources", [])
                 if sources:

@@ -1,0 +1,116 @@
+[
+  {
+    "subject": "Physics",
+    "question": "Explain the principle of superposition in waves.",
+    "results": [
+      {
+        "technique": "Zero-Shot",
+        "input_tokens": 1564,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model": "none",
+        "response_time": 4.473987340927124
+      },
+      {
+        "technique": "One-Shot",
+        "input_tokens": 1582,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model": "none",
+        "response_time": 4.682584285736084
+      },
+      {
+        "technique": "Multi-Shot",
+        "input_tokens": 1985,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model": "none",
+        "response_time": 4.5081868171691895
+      },
+      {
+        "technique": "Dynamic",
+        "input_tokens": 1454,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model": "none",
+        "response_time": 4.697616338729858
+      }
+    ]
+  },
+  {
+    "subject": "Biology",
+    "question": "Describe the process of DNA replication.",
+    "results": [
+      {
+        "technique": "Zero-Shot",
+        "input_tokens": 1462,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model": "none",
+        "response_time": 4.499125242233276
+      },
+      {
+        "technique": "One-Shot",
+        "input_tokens": 1531,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model": "none",
+        "response_time": 4.572405576705933
+      },
+      {
+        "technique": "Multi-Shot",
+        "input_tokens": 2035,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model": "none",
+        "response_time": 4.528076410293579
+      },
+      {
+        "technique": "Dynamic",
+        "input_tokens": 1352,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model": "none",
+        "response_time": 4.470446586608887
+      }
+    ]
+  },
+  {
+    "subject": "Math",
+    "question": "What is integration by parts and when is it used?",
+    "results": [
+      {
+        "technique": "Zero-Shot",
+        "input_tokens": 1711,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model": "none",
+        "response_time": 4.876620292663574
+      },
+      {
+        "technique": "One-Shot",
+        "input_tokens": 1867,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model": "none",
+        "response_time": 3.7008094787597656
+      },
+      {
+        "technique": "Multi-Shot",
+        "input_tokens": 2443,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model": "none",
+        "response_time": 3.950187921524048
+      },
+      {
+        "technique": "Dynamic",
+        "input_tokens": 1601,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model": "none",
+        "response_time": 3.5946013927459717
+      }
+    ]
+  }
+]

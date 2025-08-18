@@ -636,7 +636,27 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
         use_zero_shot=use_zero_shot,
         subject=subject
     )
-    answer = generate_answer(prompt, temperature=temperature)
+    
+    # Get the answer and token counts from the LLM
+    try:
+        # The updated generate_answer function returns both text and token counts
+        answer, token_counts = generate_answer(prompt, temperature=temperature)
+        input_tokens = token_counts["input"]
+        output_tokens = token_counts["output"]
+        total_tokens = token_counts["total"]
+        model_used = token_counts["model"]
+    except Exception as e:
+        # If there's an error, continue without token counts
+        print(f"Warning: Error in generate_answer: {str(e)}")
+        try:
+            # Fall back to old behavior
+            answer = generate_answer(prompt, temperature=temperature)[0]
+            input_tokens = output_tokens = total_tokens = 0
+            model_used = "unknown"
+        except:
+            answer = "Error generating answer"
+            input_tokens = output_tokens = total_tokens = 0
+            model_used = "error"
     
     # Not returning sources in the response
     return {
@@ -647,5 +667,11 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
         "used_multi_shot": use_multi_shot,
         "used_dynamic": use_dynamic,
         "used_zero_shot": use_zero_shot,
-        "question_type": question_type if use_dynamic else None
+        "question_type": question_type if use_dynamic else None,
+        "token_counts": {
+            "input": input_tokens,
+            "output": output_tokens,
+            "total": total_tokens,
+            "model": model_used
+        }
     }
