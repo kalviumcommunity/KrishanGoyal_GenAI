@@ -2,6 +2,7 @@ from .embedding_store import similarity_search
 from .llm import generate_answer
 from .config import settings
 from typing import List, Optional, Dict
+import re
 
 # Multi-shot examples for different subjects
 MULTI_SHOT_EXAMPLES = {
@@ -268,6 +269,102 @@ Matrices are rectangular arrays of numbers, symbols, or expressions arranged in 
     ]
 }
 
+# Dynamic prompt templates based on question types
+DYNAMIC_PROMPT_TEMPLATES = {
+    "definition": {
+        "pattern": r"(?i)(what is|define|explain|describe|meaning of|concept of|definition of)",
+        "template": """# Definition and Explanation
+
+For this question about the definition or explanation of a concept, provide:
+
+1. A clear, concise definition in 1-2 sentences
+2. The broader category or field to which this concept belongs
+3. Key properties or characteristics that distinguish it
+4. Any relevant mathematical formulas or expressions
+5. Visual or conceptual analogies if helpful for understanding
+6. Historical context or development if relevant
+7. Common applications or examples in real-world scenarios
+
+Your answer should progress from simple to complex, helping students build a clear mental model of the concept."""
+    },
+    "comparison": {
+        "pattern": r"(?i)(compare|contrast|difference between|similarities between|distinguish between|vs\.|versus)",
+        "template": """# Comparison Analysis
+
+For this comparison question, structure your answer with:
+
+1. Brief definitions of each concept being compared
+2. A point-by-point comparison using a structured format:
+   * Key similarities (3-5 points)
+   * Key differences (3-5 points)
+3. A comparison table if applicable
+4. The significance of understanding these differences
+5. Contexts where one might be preferred over the other
+6. Common misconceptions about the comparison
+
+Use parallel structure when comparing to highlight the differences more effectively."""
+    },
+    "process": {
+        "pattern": r"(?i)(process of|steps in|stages of|mechanism of|how does|explain how)",
+        "template": """# Process Explanation
+
+For this question about a process or mechanism, structure your answer with:
+
+1. A brief overview of what the process accomplishes
+2. The starting conditions or inputs
+3. A clear step-by-step breakdown with:
+   * Sequential numbering
+   * What happens at each stage
+   * Any catalysts, enzymes, or facilitating factors
+4. Diagrams or visual representations if possible
+5. The end result or outputs
+6. Regulatory mechanisms or control points
+7. Significance or importance of this process
+
+Make sure to maintain clear cause-and-effect relationships between steps."""
+    },
+    "problem_solving": {
+        "pattern": r"(?i)(solve|calculate|find|determine|compute|evaluate|derive)",
+        "template": """# Problem-Solving Approach
+
+For this calculation or problem-solving question:
+
+1. Restate the problem clearly
+2. List the given information and what needs to be found
+3. Identify the relevant formulas or principles
+4. Show the step-by-step solution with:
+   * Each mathematical step clearly explained
+   * Units maintained throughout the calculation
+   * Clear explanations for each transformation
+5. Highlight the final answer clearly
+6. Verify the answer for reasonableness
+7. Discuss the significance of the result or any insights gained
+
+Ensure all mathematical notation is clear and well-formatted."""
+    },
+    "application": {
+        "pattern": r"(?i)(application of|apply|used for|practical use|real.world|example of|importance of)",
+        "template": """# Applications and Significance
+
+For this question about applications or significance:
+
+1. Brief recap of the core concept or principle
+2. Categorize applications into relevant domains:
+   * Academic or theoretical importance
+   * Industrial or technological applications
+   * Everyday life examples
+   * Future potential applications
+3. For each application, explain:
+   * How the concept is specifically applied
+   * Why it's particularly suitable for this application
+   * Any modifications needed for practical implementation
+4. The broader impact on science, society, or technology
+5. Limitations or challenges in applying this concept
+
+Connect theoretical knowledge to practical scenarios students can relate to."""
+    }
+}
+
 # One-shot examples for different subjects
 ONE_SHOT_EXAMPLES = {
     "Physics": {
@@ -382,8 +479,15 @@ Please provide detailed, well-structured answers following these guidelines:
 Make sure to format mathematical equations properly. Your goal is to provide comprehensive, exam-ready answers."""
 
 
+def detect_question_type(question: str) -> str:
+    """Detect the type of question based on patterns in the question text."""
+    for q_type, details in DYNAMIC_PROMPT_TEMPLATES.items():
+        if re.search(details["pattern"], question):
+            return q_type
+    return "definition"  # Default to definition if no pattern matches
+
 def build_prompt(question: str, retrieved_docs: List[dict], use_one_shot: bool = False, 
-              use_multi_shot: bool = False, subject: Optional[str] = None) -> str:
+              use_multi_shot: bool = False, use_dynamic: bool = False, subject: Optional[str] = None) -> str:
     # Build context from retrieved documents
     context_blocks = []
     for i, doc in enumerate(retrieved_docs, 1):
@@ -401,8 +505,19 @@ def build_prompt(question: str, retrieved_docs: List[dict], use_one_shot: bool =
         elif "bio" in subject.lower():
             example_subject = "Biology"
     
+    # Dynamic prompting takes highest precedence if enabled
+    if use_dynamic:
+        # Detect question type and get appropriate template
+        q_type = detect_question_type(question)
+        template = DYNAMIC_PROMPT_TEMPLATES[q_type]["template"]
+        examples_text = f"""### Question Type: {q_type.replace('_', ' ').title()}
+
+{template}
+
+Now answer the user's question using this structure:"""
+    
     # Add multi-shot examples if requested (takes precedence over one-shot)
-    if use_multi_shot:
+    elif use_multi_shot:
         examples = MULTI_SHOT_EXAMPLES.get(example_subject, MULTI_SHOT_EXAMPLES["Math"])
         examples_blocks = []
         
@@ -415,7 +530,7 @@ def build_prompt(question: str, retrieved_docs: List[dict], use_one_shot: bool =
         
         examples_text = "\n\n".join(examples_blocks) + "\n\nNow answer the user's question in a similar format:"
     
-    # Add one-shot example if requested and multi-shot is not being used
+    # Add one-shot example if requested and neither dynamic nor multi-shot are being used
     elif use_one_shot:
         # Get example Q&A pair
         example = ONE_SHOT_EXAMPLES.get(example_subject, ONE_SHOT_EXAMPLES["Math"])
@@ -433,7 +548,8 @@ Now answer the user's question in a similar format:"""
 
 
 def answer_question(question: str, temperature: float | None = None, k: int | None = None, 
-                 subject: Optional[str] = None, use_one_shot: bool = False, use_multi_shot: bool = False):
+                 subject: Optional[str] = None, use_one_shot: bool = False, 
+                 use_multi_shot: bool = False, use_dynamic: bool = False):
     if not question:
         return {"error": "Question cannot be empty"}
     
@@ -442,12 +558,27 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
     if k is None:
         k = settings.max_retrieve
     
-    # Multi-shot takes precedence over one-shot if both are enabled
-    if use_multi_shot:
+    # Order of precedence: dynamic > multi-shot > one-shot
+    if use_dynamic:
+        use_multi_shot = False
+        use_one_shot = False
+    elif use_multi_shot:
         use_one_shot = False
     
+    # Detect question type for response metadata
+    question_type = "standard"
+    if use_dynamic:
+        question_type = detect_question_type(question)
+    
     retrieved = similarity_search(question, k=k, subject=subject)
-    prompt = build_prompt(question, retrieved, use_one_shot=use_one_shot, use_multi_shot=use_multi_shot, subject=subject)
+    prompt = build_prompt(
+        question, 
+        retrieved, 
+        use_one_shot=use_one_shot, 
+        use_multi_shot=use_multi_shot, 
+        use_dynamic=use_dynamic,
+        subject=subject
+    )
     answer = generate_answer(prompt, temperature=temperature)
     
     # Not returning sources in the response
@@ -456,5 +587,7 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
         "used_k": k, 
         "temperature": temperature, 
         "used_one_shot": use_one_shot,
-        "used_multi_shot": use_multi_shot
+        "used_multi_shot": use_multi_shot,
+        "used_dynamic": use_dynamic,
+        "question_type": question_type if use_dynamic else None
     }
