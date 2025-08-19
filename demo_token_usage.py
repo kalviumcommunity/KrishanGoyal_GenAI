@@ -47,7 +47,8 @@ PROMPTING_TECHNIQUES = [
             "use_zero_shot": True,
             "use_one_shot": False,
             "use_multi_shot": False,
-            "use_dynamic": False
+            "use_dynamic": False,
+            "use_chain_of_thought": False
         }
     },
     {
@@ -56,7 +57,8 @@ PROMPTING_TECHNIQUES = [
             "use_zero_shot": False,
             "use_one_shot": True,
             "use_multi_shot": False,
-            "use_dynamic": False
+            "use_dynamic": False,
+            "use_chain_of_thought": False
         }
     },
     {
@@ -65,7 +67,8 @@ PROMPTING_TECHNIQUES = [
             "use_zero_shot": False,
             "use_one_shot": False,
             "use_multi_shot": True,
-            "use_dynamic": False
+            "use_dynamic": False,
+            "use_chain_of_thought": False
         }
     },
     {
@@ -74,7 +77,18 @@ PROMPTING_TECHNIQUES = [
             "use_zero_shot": False,
             "use_one_shot": False,
             "use_multi_shot": False,
-            "use_dynamic": True
+            "use_dynamic": True,
+            "use_chain_of_thought": False
+        }
+    },
+    {
+        "name": "Chain-of-Thought",
+        "params": {
+            "use_zero_shot": False,
+            "use_one_shot": False,
+            "use_multi_shot": False,
+            "use_dynamic": False,
+            "use_chain_of_thought": True
         }
     }
 ]
