@@ -4,6 +4,25 @@ from .config import settings
 from typing import List, Optional, Dict
 import re
 
+# Import Chain of Thought templates
+try:
+    from .chain_of_thought import CHAIN_OF_THOUGHT_TEMPLATES
+except ImportError:
+    # Fallback if the file doesn't exist
+    CHAIN_OF_THOUGHT_TEMPLATES = {
+        "default": """To answer this question thoroughly, I'll use a Chain of Thought approach:
+
+1. First, I'll break down the key components of the question
+2. Then, I'll identify the relevant principles or concepts
+3. Next, I'll work through my reasoning step by step
+4. I'll make any intermediate conclusions explicit
+5. Finally, I'll arrive at a complete answer
+
+Question: {question}
+
+Working through this step by step:"""
+    }
+
 # Multi-shot examples for different subjects
 MULTI_SHOT_EXAMPLES = {
     "Physics": [
@@ -531,7 +550,8 @@ def detect_question_type(question: str) -> str:
 
 def build_prompt(question: str, retrieved_docs: List[dict], use_one_shot: bool = False, 
               use_multi_shot: bool = False, use_dynamic: bool = False,
-              use_zero_shot: bool = False, subject: Optional[str] = None) -> str:
+              use_zero_shot: bool = False, use_chain_of_thought: bool = False,
+              subject: Optional[str] = None) -> str:
     # Build context from retrieved documents
     context_blocks = []
     for i, doc in enumerate(retrieved_docs, 1):
@@ -548,13 +568,26 @@ def build_prompt(question: str, retrieved_docs: List[dict], use_one_shot: bool =
             example_subject = "Physics"
         elif "bio" in subject.lower():
             example_subject = "Biology"
+        elif "chem" in subject.lower():
+            example_subject = "Chemistry"
     
     # Select the appropriate instructions based on prompt type
-    # Order of precedence: zero-shot > dynamic > multi-shot > one-shot
+    # Order of precedence: zero-shot > chain-of-thought > dynamic > multi-shot > one-shot
     instructions = SYSTEM_INSTRUCTIONS  # Default instructions
     
     if use_zero_shot:
         instructions = ZERO_SHOT_INSTRUCTIONS
+        
+    # Apply Chain of Thought template if requested and zero-shot is not used
+    if use_chain_of_thought and not use_zero_shot:
+        # Select template based on subject, default to generic if not found
+        cot_template = CHAIN_OF_THOUGHT_TEMPLATES.get(example_subject, CHAIN_OF_THOUGHT_TEMPLATES["default"])
+        # Format the template with the question
+        examples_text = cot_template.format(question=question)
+        # Other prompting types should be disabled
+        use_dynamic = False
+        use_multi_shot = False
+        use_one_shot = False
     
     # Dynamic prompting takes highest precedence if enabled and zero-shot is not used
     if use_dynamic and not use_zero_shot:
@@ -601,7 +634,7 @@ Now answer the user's question in a similar format:"""
 def answer_question(question: str, temperature: float | None = None, k: int | None = None, 
                  subject: Optional[str] = None, use_one_shot: bool = False, 
                  use_multi_shot: bool = False, use_dynamic: bool = False,
-                 use_zero_shot: bool = False):
+                 use_zero_shot: bool = False, use_chain_of_thought: bool = False):
     if not question:
         return {"error": "Question cannot be empty"}
     
@@ -610,8 +643,13 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
     if k is None:
         k = settings.max_retrieve
     
-    # Order of precedence: zero-shot > dynamic > multi-shot > one-shot
+    # Order of precedence: zero-shot > chain-of-thought > dynamic > multi-shot > one-shot
     if use_zero_shot:
+        use_chain_of_thought = False
+        use_dynamic = False
+        use_multi_shot = False
+        use_one_shot = False
+    elif use_chain_of_thought:
         use_dynamic = False
         use_multi_shot = False
         use_one_shot = False
@@ -625,6 +663,8 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
     question_type = "standard"
     if use_dynamic:
         question_type = detect_question_type(question)
+    elif use_chain_of_thought:
+        question_type = "chain_of_thought"
     
     retrieved = similarity_search(question, k=k, subject=subject)
     prompt = build_prompt(
@@ -634,6 +674,7 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
         use_multi_shot=use_multi_shot, 
         use_dynamic=use_dynamic,
         use_zero_shot=use_zero_shot,
+        use_chain_of_thought=use_chain_of_thought,
         subject=subject
     )
     
@@ -667,7 +708,8 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
         "used_multi_shot": use_multi_shot,
         "used_dynamic": use_dynamic,
         "used_zero_shot": use_zero_shot,
-        "question_type": question_type if use_dynamic else None,
+        "used_chain_of_thought": use_chain_of_thought,
+        "question_type": question_type if (use_dynamic or use_chain_of_thought) else None,
         "token_counts": {
             "input": input_tokens,
             "output": output_tokens,

@@ -40,6 +40,7 @@ async def ask(
     use_multi_shot: Optional[bool] = Form(False),
     use_dynamic: Optional[bool] = Form(False),
     use_zero_shot: Optional[bool] = Form(False),
+    use_chain_of_thought: Optional[bool] = Form(False),
     json_body: Optional[dict] = Body(None)
 ):
     # Support both form-data (Streamlit current) and JSON clients
@@ -64,6 +65,8 @@ async def ask(
                     use_dynamic = body_data.get("use_dynamic", False)
                 if use_zero_shot is False:  # Only override if not provided via Form
                     use_zero_shot = body_data.get("use_zero_shot", False)
+                if use_chain_of_thought is False:  # Only override if not provided via Form
+                    use_chain_of_thought = body_data.get("use_chain_of_thought", False)
                 k = body_data.get("k")
         except Exception:
             pass  # Silently continue if JSON parsing fails
@@ -85,6 +88,8 @@ async def ask(
             use_dynamic = json_body.get("use_dynamic", False)
         if use_zero_shot is False:  # Only override if not provided via Form
             use_zero_shot = json_body.get("use_zero_shot", False)
+        if use_chain_of_thought is False:  # Only override if not provided via Form
+            use_chain_of_thought = json_body.get("use_chain_of_thought", False)
         k = json_body.get("k")
     else:
         k = None
@@ -102,7 +107,8 @@ async def ask(
             use_one_shot=use_one_shot,
             use_multi_shot=use_multi_shot,
             use_dynamic=use_dynamic,
-            use_zero_shot=use_zero_shot
+            use_zero_shot=use_zero_shot,
+            use_chain_of_thought=use_chain_of_thought
         )
         return result
     except Exception as e:

@@ -6,34 +6,34 @@
       {
         "technique": "Zero-Shot",
         "input_tokens": 1564,
-        "output_tokens": 754,
-        "total_tokens": 2318,
+        "output_tokens": 672,
+        "total_tokens": 2236,
         "model": "gemini-1.5-flash",
-        "response_time": 7.514440536499023
+        "response_time": 9.001060009002686
       },
       {
         "technique": "One-Shot",
         "input_tokens": 1582,
-        "output_tokens": 542,
-        "total_tokens": 2124,
+        "output_tokens": 564,
+        "total_tokens": 2146,
         "model": "gemini-1.5-flash",
-        "response_time": 6.296746730804443
+        "response_time": 6.534852027893066
       },
       {
         "technique": "Multi-Shot",
         "input_tokens": 1985,
-        "output_tokens": 594,
-        "total_tokens": 2579,
+        "output_tokens": 621,
+        "total_tokens": 2606,
         "model": "gemini-1.5-flash",
-        "response_time": 7.370890378952026
+        "response_time": 6.955585241317749
       },
       {
         "technique": "Dynamic",
         "input_tokens": 1454,
-        "output_tokens": 633,
-        "total_tokens": 2087,
+        "output_tokens": 589,
+        "total_tokens": 2043,
         "model": "gemini-1.5-flash",
-        "response_time": 7.171718120574951
+        "response_time": 6.689175844192505
       }
     ]
   },
@@ -44,18 +44,18 @@
       {
         "technique": "Zero-Shot",
         "input_tokens": 1462,
-        "output_tokens": 786,
-        "total_tokens": 2248,
+        "output_tokens": 742,
+        "total_tokens": 2204,
         "model": "gemini-1.5-flash",
-        "response_time": 8.033344268798828
+        "response_time": 7.653115749359131
       },
       {
         "technique": "One-Shot",
         "input_tokens": 1531,
-        "output_tokens": 649,
-        "total_tokens": 2180,
+        "output_tokens": 670,
+        "total_tokens": 2201,
         "model": "gemini-1.5-flash",
-        "response_time": 11.124441146850586
+        "response_time": 7.35496187210083
       },
       {
         "technique": "Multi-Shot",
@@ -63,7 +63,7 @@
         "output_tokens": 623,
         "total_tokens": 2658,
         "model": "gemini-1.5-flash",
-        "response_time": 9.16521143913269
+        "response_time": 7.565211296081543
       },
       {
         "technique": "Dynamic",
