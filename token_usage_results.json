@@ -6,34 +6,34 @@
       {
         "technique": "Zero-Shot",
         "input_tokens": 1564,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "model": "none",
-        "response_time": 4.473987340927124
+        "output_tokens": 754,
+        "total_tokens": 2318,
+        "model": "gemini-1.5-flash",
+        "response_time": 7.514440536499023
       },
       {
         "technique": "One-Shot",
         "input_tokens": 1582,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "model": "none",
-        "response_time": 4.682584285736084
+        "output_tokens": 542,
+        "total_tokens": 2124,
+        "model": "gemini-1.5-flash",
+        "response_time": 6.296746730804443
       },
       {
         "technique": "Multi-Shot",
         "input_tokens": 1985,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "model": "none",
-        "response_time": 4.5081868171691895
+        "output_tokens": 594,
+        "total_tokens": 2579,
+        "model": "gemini-1.5-flash",
+        "response_time": 7.370890378952026
       },
       {
         "technique": "Dynamic",
         "input_tokens": 1454,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "model": "none",
-        "response_time": 4.697616338729858
+        "output_tokens": 633,
+        "total_tokens": 2087,
+        "model": "gemini-1.5-flash",
+        "response_time": 7.171718120574951
       }
     ]
   },
@@ -44,34 +44,34 @@
       {
         "technique": "Zero-Shot",
         "input_tokens": 1462,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "model": "none",
-        "response_time": 4.499125242233276
+        "output_tokens": 786,
+        "total_tokens": 2248,
+        "model": "gemini-1.5-flash",
+        "response_time": 8.033344268798828
       },
       {
         "technique": "One-Shot",
         "input_tokens": 1531,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "model": "none",
-        "response_time": 4.572405576705933
+        "output_tokens": 649,
+        "total_tokens": 2180,
+        "model": "gemini-1.5-flash",
+        "response_time": 11.124441146850586
       },
       {
         "technique": "Multi-Shot",
         "input_tokens": 2035,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "model": "none",
-        "response_time": 4.528076410293579
+        "output_tokens": 623,
+        "total_tokens": 2658,
+        "model": "gemini-1.5-flash",
+        "response_time": 9.16521143913269
       },
       {
         "technique": "Dynamic",
         "input_tokens": 1352,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "model": "none",
-        "response_time": 4.470446586608887
+        "output_tokens": 729,
+        "total_tokens": 2081,
+        "model": "gemini-1.5-flash",
+        "response_time": 7.7443788051605225
       }
     ]
   },
@@ -82,34 +82,34 @@
       {
         "technique": "Zero-Shot",
         "input_tokens": 1711,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "model": "none",
-        "response_time": 4.876620292663574
+        "output_tokens": 661,
+        "total_tokens": 2372,
+        "model": "gemini-1.5-flash",
+        "response_time": 7.006823539733887
       },
       {
         "technique": "One-Shot",
         "input_tokens": 1867,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "model": "none",
-        "response_time": 3.7008094787597656
+        "output_tokens": 601,
+        "total_tokens": 2468,
+        "model": "gemini-1.5-flash",
+        "response_time": 6.802511215209961
       },
       {
         "technique": "Multi-Shot",
         "input_tokens": 2443,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "model": "none",
-        "response_time": 3.950187921524048
+        "output_tokens": 545,
+        "total_tokens": 2988,
+        "model": "gemini-1.5-flash",
+        "response_time": 6.557363271713257
       },
       {
         "technique": "Dynamic",
         "input_tokens": 1601,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "model": "none",
-        "response_time": 3.5946013927459717
+        "output_tokens": 475,
+        "total_tokens": 2076,
+        "model": "gemini-1.5-flash",
+        "response_time": 6.242150783538818
       }
     ]
   }
