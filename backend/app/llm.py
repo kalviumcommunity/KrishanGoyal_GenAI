@@ -1,5 +1,6 @@
 from .config import settings
 import re
+from typing import Optional, Tuple, Dict, Any
 
 try:
     import tiktoken  # For accurate token counting
@@ -193,7 +194,7 @@ if settings.google_api_key and genai is not None:
         _LLM_READY = USE_MOCK_RESPONSES  # We'll use mock responses if configuration fails
 
 
-def generate_answer(prompt: str, temperature: float = 0.2) -> tuple:
+def generate_answer(prompt: str, temperature: float = 0.2, stop_sequence: Optional[str] = None) -> tuple:
     """
     Generate an answer using the Gemini model.
     Returns both the generated answer and token count information.
@@ -211,6 +212,11 @@ def generate_answer(prompt: str, temperature: float = 0.2) -> tuple:
     if not _LLM_READY and USE_MOCK_RESPONSES:
         # Generate a mock response based on the prompt
         mock_response = generate_mock_response(prompt)
+        
+        # Apply stop sequence if provided
+        if stop_sequence and stop_sequence in mock_response:
+            # Find the stop sequence and truncate the response
+            mock_response = mock_response.split(stop_sequence)[0]
         
         # Count output tokens for the mock response
         output_tokens = count_tokens(mock_response)
@@ -243,9 +249,16 @@ def generate_answer(prompt: str, temperature: float = 0.2) -> tuple:
                 "DANGEROUS": "BLOCK_NONE",
             }
             
+            # Build generation config
+            gen_config = {"temperature": temperature}
+            
+            # Add stop sequences if provided
+            if stop_sequence:
+                gen_config["stop_sequences"] = [stop_sequence]
+            
             response = model.generate_content(
                 prompt,
-                generation_config={"temperature": temperature},
+                generation_config=gen_config,
                 safety_settings=safety_settings
             )
             
@@ -255,7 +268,15 @@ def generate_answer(prompt: str, temperature: float = 0.2) -> tuple:
             token_counts["total"] = input_tokens + output_tokens
             token_counts["model"] = model_name
             
-            return response.text, token_counts
+            # Get the text from the response
+            response_text = response.text
+            
+            # Apply stop sequence if provided - just in case the LLM ignored the generation config
+            if stop_sequence and stop_sequence in response_text:
+                # Find the stop sequence and truncate the response
+                response_text = response_text.split(stop_sequence)[0]
+                
+            return response_text, token_counts
             
         except Exception:
             continue  # Try the next model
