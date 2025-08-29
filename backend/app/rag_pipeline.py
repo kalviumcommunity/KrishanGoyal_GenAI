@@ -634,7 +634,8 @@ Now answer the user's question in a similar format:"""
 def answer_question(question: str, temperature: float | None = None, k: int | None = None, 
                  subject: Optional[str] = None, use_one_shot: bool = False, 
                  use_multi_shot: bool = False, use_dynamic: bool = False,
-                 use_zero_shot: bool = False, use_chain_of_thought: bool = False):
+                 use_zero_shot: bool = False, use_chain_of_thought: bool = False,
+                 stop_sequence: Optional[str] = None):
     if not question:
         return {"error": "Question cannot be empty"}
     
@@ -681,7 +682,7 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
     # Get the answer and token counts from the LLM
     try:
         # The updated generate_answer function returns both text and token counts
-        answer, token_counts = generate_answer(prompt, temperature=temperature)
+        answer, token_counts = generate_answer(prompt, temperature=temperature, stop_sequence=stop_sequence)
         input_tokens = token_counts["input"]
         output_tokens = token_counts["output"]
         total_tokens = token_counts["total"]
@@ -691,7 +692,7 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
         print(f"Warning: Error in generate_answer: {str(e)}")
         try:
             # Fall back to old behavior
-            answer = generate_answer(prompt, temperature=temperature)[0]
+            answer = generate_answer(prompt, temperature=temperature, stop_sequence=stop_sequence)[0]
             input_tokens = output_tokens = total_tokens = 0
             model_used = "unknown"
         except:
@@ -715,5 +716,6 @@ def answer_question(question: str, temperature: float | None = None, k: int | No
             "output": output_tokens,
             "total": total_tokens,
             "model": model_used
-        }
+        },
+        "used_stop_sequence": stop_sequence is not None
     }
